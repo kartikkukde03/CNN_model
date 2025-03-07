@@ -3,8 +3,18 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image, ImageOps
 
-# Load trained model
-MODEL_PATH = "mnist_cnn.h5"  # No local path
+import tensorflow as tf
+import urllib.request
+
+MODEL_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/mnist_cnn.h5"
+MODEL_PATH = "mnist_cnn.h5"
+
+# Download the model if not present
+import os
+if not os.path.exists(MODEL_PATH):
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+
+# Load model
 model = tf.keras.models.load_model(MODEL_PATH)
 
 # Preprocessing function
