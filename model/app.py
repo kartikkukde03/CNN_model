@@ -1,47 +1,45 @@
 import streamlit as st
+import tensorflow as tf
 import numpy as np
-import tensorflow as tf
-from PIL import Image, ImageOps
-
-import tensorflow as tf
 import urllib.request
-
-MODEL_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/mnist_cnn.h5"
-MODEL_PATH = "mnist_cnn.h5"
-
-# Download the model if not present
 import os
-if not os.path.exists(MODEL_PATH):
-    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+from PIL import Image
 
-# Load model
+# Set paths
+MODEL_PATH = "mnist_cnn.h5"
+MODEL_URL = "https://github.com/kartikkukde03/CNN_model/blob/main/model/mnist_cnn.h5"  # Replace with your actual GitHub raw link
+
+# 🔹 Ensure model file exists, else download it
+if not os.path.exists(MODEL_PATH):
+    st.warning("Model file not found! Downloading from GitHub...")
+    try:
+        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+        st.success("Model downloaded successfully!")
+    except Exception as e:
+        st.error(f"Failed to download model: {e}")
+        st.stop()
+
+# 🔹 Load the trained CNN model
 model = tf.keras.models.load_model(MODEL_PATH)
 
-# Preprocessing function
-def preprocess_image(img):
-    img = img.convert("L")  # Convert to grayscale
-    img = img.resize((28, 28), Image.LANCZOS)
-    img_array = np.array(img) / 255.0
-    img_array = img_array.reshape(1, 28, 28, 1)
-    return img_array
-
 # Streamlit UI
-st.title("🖍️ MNIST Handwritten Digit Recognition")
-st.write("Draw a digit below and get predictions!")
+st.title("🖥️ MNIST Digit Classifier")
+st.write("Upload a hand-drawn digit image (28x28 pixels), and the model will predict it!")
 
-# Canvas for drawing
-from streamlit_drawable_canvas import st_canvas
-canvas = st_canvas(stroke_width=10, background_color="white", height=300, width=300)
+# Upload Image
+uploaded_file = st.file_uploader("Choose a digit image...", type=["png", "jpg", "jpeg"])
 
-if st.button("Predict"):
-    if canvas.image_data is not None:
-        # Convert to PIL image
-        img = Image.fromarray((canvas.image_data[:, :, :3]).astype("uint8"))
-        processed_img = preprocess_image(img)
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert("L")  # Convert to grayscale
+    image = image.resize((28, 28))  # Resize to 28x28
+    img_array = np.array(image).reshape(1, 28, 28, 1) / 255.0  # Normalize
 
-        # Prediction
-        prediction = model.predict(processed_img)
-        digit = np.argmax(prediction)
+    # Show the uploaded image
+    st.image(image, caption="Uploaded Image", use_column_width=False)
 
-        # Display result
-        st.success(f"🎉 Predicted Digit: {digit}")
+    # 🔹 Make prediction
+    prediction = model.predict(img_array)
+    predicted_digit = np.argmax(prediction)
+
+    # Display result
+    st.subheader(f"🧠 Model Prediction: **{predicted_digit}**")
