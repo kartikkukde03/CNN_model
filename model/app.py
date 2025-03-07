@@ -4,7 +4,7 @@ import tensorflow as tf
 from PIL import Image, ImageOps
 
 # Load trained model
-MODEL_PATH = r"mnist_cnn.h5"
+MODEL_PATH = "mnist_cnn.h5"  # No local path
 model = tf.keras.models.load_model(MODEL_PATH)
 
 # Preprocessing function
